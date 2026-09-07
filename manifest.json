@@ -1,0 +1,23 @@
+{
+  "author": "ZantsuRocks",
+  "id": "rocks.zantsu.sms",
+  "name": "Split Sensor With Media",
+  "description": "Split Sensor With Media iCUE widget",
+  "version": "1.0.0",
+  "preview_icon": "resources/icon.svg",
+  "min_app_version": "5.47",
+  "min_framework_version": "1.4.0",
+  "os": [
+    {
+      "platform": "windows"
+    }
+  ],
+  "supported_devices": [
+    {
+      "type": "pump_lcd"
+    }
+  ],
+  "required_plugins": [
+    "widgetbuilder.sensorsdataprovider:Sensors:1.0"
+  ]
+}

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>tr('SplitMediaSensor')</title>
+  <link rel="icon" type="image/svg+xml" href="resources/icon.svg" />
+
+  <meta name="x-icue-property" content="backgroundImage" data-label="tr('Imagem de Fundo')" data-type="media-selector"
+    data-filters="['*.png', '*.jpg', '*.gif']" />
+  <meta name="x-icue-property" content="blurBackground" data-label="tr('Desfoque de Fundo')" data-type="switch"
+    data-default="true" />
+
+  <meta name="x-icue-property" content="sensorLeftId" data-label="tr('Sensor Esquerda')" data-type="sensors-combobox"
+    data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('temperature')" />
+  <meta name="x-icue-property" content="sensorLeftColor" data-label="tr('Cor Esquerda')" data-type="color"
+    data-default="'#FFFFFF'" />
+  <meta name="x-icue-property" content="sensorRightId" data-label="tr('Sensor Direita')" data-type="sensors-combobox"
+    data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('temperature')" />
+  <meta name="x-icue-property" content="sensorRightColor" data-label="tr('Cor Direita')" data-type="color"
+    data-default="'#FFFFFF'" />
+
+  <script type="application/json" id="x-icue-groups">
+    [{"title": "tr('Config.')", "properties": ["backgroundImage","blurBackground","sensorLeftId","sensorRightId"]}]
+    </script>
+
+  <link rel="stylesheet" href="common/tools/media_viewer/MediaViewer.css" />
+  <script src="common/tools/media_viewer/MediaViewer.js"></script>
+  <script src="common/plugins/IcueWidgetApiWrapper.js"></script>
+  <script src="common/plugins/SimpleSensorApiWrapper.js"></script>
+</head>
+
+<body
+  style="margin:0;height:100vh;background:#1a1a2e;color:#fff;font-family:sans-serif;overflow:hidden;position:relative;">
+
+  <div id="media" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:0;"></div>
+
+  <div
+    style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;display:flex;flex-direction:column;justify-content:center;align-items:center;">
+    <div style="display:flex;justify-content:space-evenly;width:100%;align-items:center;">
+      <div style="text-align:center;">
+        <span id="valueLeft" style="font-size: calc(1vmin*20);">--</span>
+        <span id="unitsLeft" style="font-size:calc(1vmin*10);"></span>
+      </div>
+      <div style="text-align:center;">
+        <span id="valueRight" style="font-size:calc(1vmin*20);">--</span>
+        <span id="unitsRight" style="font-size:calc(1vmin*10);"></span>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let api = null;
+    const viewer = new MediaViewer({ container: document.getElementById("media") });
+    icueEvents = { "onDataUpdated": update, "onICUEInitialized": update };
+    pluginSensorsdataproviderEvents = { onInitialized: onPluginReady };
+
+    function onPluginReady() {
+      api = new SimpleSensorApiWrapper(window.plugins.Sensorsdataprovider);
+      window.plugins.Sensorsdataprovider.sensorValueChanged.connect((id, val) => {
+        if (id === sensorLeftId) document.getElementById("value").textContent = parseInt(val);
+        if (id === sensorRightId) document.getElementById("value").textContent = parseInt(val);
+      });
+      update();
+    }
+
+    async function update() {
+      if (api) {
+        if (sensorLeftId) {
+          const [val, units] = await Promise.all([api.getSensorValue(sensorLeftId), api.getSensorUnits(sensorLeftId)]);
+          let el = document.getElementById("valueLeft");
+          el.textContent = parseInt(val);
+          el.style.color = sensorLeftColor;
+          el = document.getElementById("unitsLeft");
+          el.textContent = units;
+          el.style.color = sensorLeftColor;
+        }
+        if (sensorRightId) {
+          const [val, units] = await Promise.all([api.getSensorValue(sensorRightId), api.getSensorUnits(sensorRightId)]);
+          let el = document.getElementById("valueRight");
+          el.textContent = parseInt(val);
+          el.style.color = sensorRightColor;
+          el = document.getElementById("unitsRight");
+          el.textContent = units;
+          el.style.color = sensorRightColor;
+        }
+      }
+
+
+      if (typeof backgroundImage === "undefined") {
+        viewer.clear();
+        // document.getElementById("info").textContent = "No media";
+      } else {
+        viewer.loadMedia({
+          path: backgroundImage.pathToAsset,
+          baseWidth: backgroundImage.baseWidth,
+          baseHeight: backgroundImage.baseHeight,
+          scale: backgroundImage.scale,
+          positionX: backgroundImage.positionX,
+          positionY: backgroundImage.positionY,
+          angle: backgroundImage.angle
+        });
+
+        let mEl = document.getElementById('media');
+
+        if (typeof blurBackground !== 'undefined' && blurBackground === true) {
+          mEl.style.filter = 'blur(3px)';
+        } else {
+          mEl.style.filter = 'none';
+        }
+      }
+    }
+    if (iCUE_initialized) update();
+    if (typeof pluginSensorsdataprovider_initialized !== "undefined" && pluginSensorsdataprovider_initialized)
+      onPluginReady();
+  </script>
+</body>
+
+</html>
