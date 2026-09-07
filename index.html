@@ -18,9 +18,11 @@
     data-default="plugins.Sensorsdataprovider.getDefaultSensorIdBlock('temperature')" />
   <meta name="x-icue-property" content="sensorRightColor" data-label="tr('Cor Direita')" data-type="color"
     data-default="'#FFFFFF'" />
+  <meta name="x-icue-property" content="removeUnit" data-label="tr('Remover Unidade de Temperatura')" data-type="switch"
+    data-default="true" />
 
   <script type="application/json" id="x-icue-groups">
-    [{"title": "tr('Config.')", "properties": ["backgroundImage","blurBackground","sensorLeftId","sensorRightId"]}]
+    [{"title": "tr('Config.')", "properties": ["backgroundImage","blurBackground","sensorLeftId","sensorRightId","removeUnit"]}]
   </script>
 
   <link rel="stylesheet" href="common/tools/media_viewer/MediaViewer.css" />
@@ -96,12 +98,12 @@
   <div class="overlay">
     <div class="sensor-block">
       <span id="valueLeft" class="value">--</span>
-      <span id="unitsLeft" class="units"></span>
+      <!-- <span id="unitsLeft" class="units"></span> -->
     </div>
 
     <div class="sensor-block">
       <span id="valueRight" class="value">--</span>
-      <span id="unitsRight" class="units"></span>
+      <!-- <span id="unitsRight" class="units"></span> -->
     </div>
   </div>
 
@@ -120,33 +122,29 @@
     function onPluginReady() {
       api = new SimpleSensorApiWrapper(window.plugins.Sensorsdataprovider);
       window.plugins.Sensorsdataprovider.sensorValueChanged.connect((id, val) => {
-        if (id === sensorLeftId) document.getElementById("valueLeft").textContent = formatValue(val);
-        if (id === sensorRightId) document.getElementById("valueRight").textContent = formatValue(val);
+        update();
+        // if (id === sensorLeftId) document.getElementById("valueLeft").textContent = `${formatValue(val)}°`;
+        // if (id === sensorRightId) document.getElementById("valueRight").textContent = `${formatValue(val)}°`;
       });
-      update();
     }
 
     async function update() {
       if (api) {
         if (sensorLeftId) {
-          const [val, units] = await Promise.all([api.getSensorValue(sensorLeftId), api.getSensorUnits(sensorLeftId)]);
+          const [val, units, type] = await Promise.all([api.getSensorValue(sensorLeftId), api.getSensorUnits(sensorLeftId), api.getSensorType(sensorLeftId)]);
           let elValue = document.getElementById("valueLeft");
-          elValue.textContent = formatValue(val);
+          elValue.textContent = `${formatValue(val)}${(type === 'temperature' && removeUnit) ? "°" : ''}`;
+          if (!removeUnit)
+            elValue.textContent += units || "";
           elValue.style.color = sensorLeftColor;
-
-          let elUnits = document.getElementById("unitsLeft");
-          elUnits.textContent = units || "";
-          elUnits.style.color = sensorLeftColor;
         }
         if (sensorRightId) {
-          const [val, units] = await Promise.all([api.getSensorValue(sensorRightId), api.getSensorUnits(sensorRightId)]);
+          const [val, units, type] = await Promise.all([api.getSensorValue(sensorRightId), api.getSensorUnits(sensorRightId), api.getSensorType(sensorRightId)]);
           let elValue = document.getElementById("valueRight");
-          elValue.textContent = formatValue(val);
+          elValue.textContent = `${formatValue(val)}${(type === 'temperature' && removeUnit) ? "°" : ''}`;
+          if (!removeUnit)
+            elValue.textContent += units || "";
           elValue.style.color = sensorRightColor;
-
-          let elUnits = document.getElementById("unitsRight");
-          elUnits.textContent = units || "";
-          elUnits.style.color = sensorRightColor;
         }
       }
 

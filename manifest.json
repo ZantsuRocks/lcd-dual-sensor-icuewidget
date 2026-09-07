@@ -3,7 +3,7 @@
   "id": "rocks.zantsu.sms",
   "name": "Split Sensor With Media",
   "description": "Split Sensor With Media iCUE widget",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "preview_icon": "resources/icon.svg",
   "min_app_version": "5.47",
   "min_framework_version": "1.4.0",
